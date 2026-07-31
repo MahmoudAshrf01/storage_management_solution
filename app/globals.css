@@ -258,6 +258,9 @@
   .rename-input-field {
     @apply body-2 shad-no-focus h-[52px] w-full rounded-full border px-4 shadow-drop-1 !important;
   }
+  .field-error-message {
+    @apply body-2 text-error !important;
+  }
   .delete-confirmation {
     @apply text-center text-light-100 !important;
   }
@@ -308,6 +311,7 @@
   .error-message {
     @apply body-2 mx-auto w-fit rounded-xl bg-error/5 px-8 py-4 text-center text-error !important;
   }
+
 
   /* Card */
   .file-card {

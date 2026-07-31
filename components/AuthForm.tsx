@@ -7,140 +7,121 @@ import { toast } from "sonner"
 import { Controller } from "react-hook-form"
 import { Button } from "@/components/ui/button"
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
-import {
   Field,
-  FieldDescription,
   FieldError,
   FieldGroup,
   FieldLabel,
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupText,
-  InputGroupTextarea,
-} from "@/components/ui/input-group"
-
-
-const formSchema = z.object({
-  title: z
-    .string()
-    .min(5, "Bug title must be at least 5 characters.")
-    .max(32, "Bug title must be at most 32 characters."),
-  description: z
-    .string()
-    .min(20, "Description must be at least 20 characters.")
-    .max(100, "Description must be at most 100 characters."),
-})
+import { useState } from "react";
+import Image from "next/image";
+import Link from "next/link"
 
 
 type FormType = "sign-in" | "sign-up";
 
+const authFormSchema = (formType: FormType) => {
+     return z.object({
+      email: z.string().email(),
+      fullName: formType === "sign-up" ? z.string().min(2).max(50) 
+      : z.string().optional(),
+     })
+}
+
 const AuthForm = ({ type }: { type: FormType }) => {
+  
+    const [isLoading, setIsLoading] = useState(false);
+    const [errorMessage, setErrorMessage ] = useState("");
+
+    const formSchema = authFormSchema(type);
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            title: "",
-            description: "",
+            fullName: "",
+            email: "",
         },
-    })
+    });
 
-    function onSubmit(data: z.infer<typeof formSchema>) {
-        JSON.stringify(data);
-        const {title, description} = data;
 
-        toast.success(`You submitted the following values: 
-            title: ${title} 
-            description: ${description}`
-        );
+    const onSubmit = async (values: z.infer<typeof formSchema>) => {
+      console.log(values);
     }
 
     return (
-    <Card className="w-full sm:max-w-md">
-        <CardHeader>
-            <CardTitle>{type === "sign-in" ? "Sign-in" : "Sign-up"}</CardTitle>
-            <CardDescription>{type === "sign-in" ? "Sign-in to your account" : "Sign-up for an account"}</CardDescription>
-        </CardHeader>
-      <CardContent>
+      <>
         <form id="form-rhf-demo" className="auth-form" onSubmit={form.handleSubmit(onSubmit)}>
+          <h1 className="form-title">{type === "sign-in" ? "Sign-in" : "Sign-up"}</h1>
           <FieldGroup>
+          {type === "sign-up" &&
             <Controller
-              name="title"
+              name="fullName"
               control={form.control}
               render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
                   <FieldLabel htmlFor="form-rhf-demo-title">
-                    Title
+                    Full Name
                   </FieldLabel>
                   <Input
                     {...field}
                     id="form-rhf-demo-title"
                     aria-invalid={fieldState.invalid}
-                    placeholder="Login button not working on mobile"
+                    placeholder="Enter your full name"
                     autoComplete="off"
                   />
                   {fieldState.invalid && (
-                    <FieldError errors={[fieldState.error]} />
+                    <FieldError className="field-error-message" errors={[fieldState.error]} />
                   )}
                 </Field>
               )}
             />
-            <Controller
-              name="description"
+          }
+           <Controller
+              name="email"
               control={form.control}
               render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor="form-rhf-demo-description">
-                    Description
+                  <FieldLabel htmlFor="form-rhf-demo-title">
+                    Email
                   </FieldLabel>
-                  <InputGroup>
-                    <InputGroupTextarea
-                      {...field}
-                      id="form-rhf-demo-description"
-                      placeholder="I'm having an issue with the login button on mobile."
-                      rows={6}
-                      className="min-h-24 resize-none"
-                      aria-invalid={fieldState.invalid}
-                    />
-                    <InputGroupAddon align="block-end">
-                      <InputGroupText className="tabular-nums">
-                        {field.value.length}/100 characters
-                      </InputGroupText>
-                    </InputGroupAddon>
-                  </InputGroup>
-                  <FieldDescription>
-                    Include steps to reproduce, expected behavior, and what
-                    actually happened.
-                  </FieldDescription>
+                  <Input
+                    {...field}
+                    id="form-rhf-demo-title"
+                    aria-invalid={fieldState.invalid}
+                    placeholder="Enter your email"
+                    autoComplete="off"
+                  />
                   {fieldState.invalid && (
-                    <FieldError errors={[fieldState.error]} />
+                    <FieldError className="field-error-message" errors={[fieldState.error]} />
                   )}
                 </Field>
               )}
             />
           </FieldGroup>
+
+          <Button type="submit" form="form-rhf-demo" className="form-submit-button text-white" disabled={isLoading} >
+            {type === "sign-in" ? "Sign-in" : "Sign-up"}
+            {isLoading && <Image src="/assets/icons/loader.svg" alt="Loading" width={24} height={24} className="ml-2 animate-spin" />}
+          </Button>
+          
+          {errorMessage && (
+            <p className="error-message">*{errorMessage}</p>
+          )}
+
+          <div className="body-2 flex justify-center">
+            <p className="text-light-100">
+              {type === "sign-in"
+              ? "Don't have an account? " 
+              : "Already have an account? "
+              }
+            </p>
+            <Link href={type === "sign-in" ? "/sign-up" : "/sign-in"}
+                className="ml-1 text-brand font-medium">{`${type === "sign-in" ? "Regester" : "Sign in"}`}</Link>
+          </div>
+
         </form>
-      </CardContent>
-      <CardFooter>
-        <Field orientation="horizontal">
-          <Button type="button" variant="outline" onClick={() => form.reset()}>
-            Reset
-          </Button>
-          <Button type="submit" form="form-rhf-demo">
-            Submit
-          </Button>
-        </Field>
-      </CardFooter>
-    </Card>
+
+      </>
     )
 }
 
